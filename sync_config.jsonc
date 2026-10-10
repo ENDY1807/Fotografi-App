@@ -1,0 +1,36 @@
+{
+  // Konfigurasi Sinkronisasi & Penyimpanan Dokumentasi Ekskul Fotografi
+  // Arsitektur Terinspirasi dari Google Drive Engine (Chunking, Metadata Virtual, EXIF Parser)
+  "server": {
+    "port": 5050,
+    "host": "0.0.0.0",
+    "apiUrl": "http://localhost:5050/api",
+    "maxUploadSizeMB": 500, // Dukungan file RAW & Video resolusi tinggi
+    "chunkSizeMB": 8 // Ukuran fragment chunk seperti GDrive Resumable Upload
+  },
+  "storage": {
+    "baseDir": "./uploads",
+    "thumbnailDir": "./uploads/thumbnails",
+    "eventsDir": "./uploads/events",
+    "metadataPath": "./data/metadata.json"
+  },
+  "photographySettings": {
+    "allowedExtensions": [
+      ".jpg", ".jpeg", ".png", ".webp",
+      ".cr2", ".cr3", ".nef", ".arw", ".dng", // RAW kamera Canon, Nikon, Sony
+      ".mp4", ".mov", ".mkv" // Video dokumentasi
+    ],
+    "curationStages": [
+      { "id": "raw", "name": "Raw / Unsorted", "color": "#94A3B8" },
+      { "id": "curated", "name": "Curated / Lolos Seleksi", "color": "#38BDF8" },
+      { "id": "edited", "name": "Edited / Color Graded", "color": "#F59E0B" },
+      { "id": "final", "name": "Final / Dokumentasi Resmi", "color": "#10B981" }
+    ],
+    "defaultGearPresets": [
+      { "brand": "Sony", "model": "A7 III", "lens": "FE 24-70mm f/2.8 GM" },
+      { "brand": "Canon", "model": "EOS R6", "lens": "RF 50mm f/1.8 STM" },
+      { "brand": "Fujifilm", "model": "X-T4", "lens": "XF 16-80mm f/4 R OIS WR" },
+      { "brand": "Nikon", "model": "Z6 II", "lens": "NIKKOR Z 24-70mm f/4 S" }
+    ]
+  }
+}
