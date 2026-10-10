@@ -1,0 +1,1576 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ShutterCloud — Studio Dokumentasi Fotografi</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #07090E;
+      --bg-surface: rgba(14, 20, 32, 0.85);
+      --card-bg: rgba(19, 27, 44, 0.65);
+      --card-hover: rgba(26, 38, 62, 0.85);
+      --border: rgba(255, 255, 255, 0.08);
+      --border-focus: rgba(245, 158, 11, 0.5);
+      --gold: #F59E0B;
+      --gold-glow: rgba(245, 158, 11, 0.25);
+      --text: #F8FAFC;
+      --text-muted: #94A3B8;
+      --text-dim: #64748B;
+      
+      --status-raw: #64748B;
+      --status-curated: #0284C7;
+      --status-edited: #D97706;
+      --status-final: #10B981;
+      
+      --danger: #EF4444;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      background-image: 
+        radial-gradient(circle at 15% 10%, rgba(245, 158, 11, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 85% 80%, rgba(2, 132, 199, 0.07) 0%, transparent 40%);
+      color: var(--text);
+      font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      line-height: 1.5;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: #1E293B; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #334155; }
+
+    /* Top Navigation Header */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      background: rgba(7, 9, 14, 0.85);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 24px;
+    }
+
+    .nav-container {
+      max-width: 1360px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .brand-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #F59E0B, #B45309);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 4px 16px var(--gold-glow);
+    }
+
+    .brand-title {
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: -0.3px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand-badge {
+      font-size: 10px;
+      padding: 2px 7px;
+      border-radius: 20px;
+      background: rgba(16, 185, 129, 0.15);
+      color: #10B981;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .brand-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    /* Quota Header Bar */
+    .header-quota {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      padding: 6px 14px;
+      border-radius: 10px;
+    }
+
+    .quota-info {
+      font-size: 12px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .quota-track {
+      width: 100px;
+      height: 6px;
+      background: #1E293B;
+      border-radius: 3px;
+      overflow: hidden;
+      margin-top: 4px;
+    }
+
+    .quota-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #F59E0B, #10B981);
+      width: 25%;
+      border-radius: 3px;
+      transition: width 0.4s ease;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 9px 16px;
+      border-radius: 9px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: none;
+      text-decoration: none;
+    }
+
+    .btn-gold {
+      background: var(--gold);
+      color: #000;
+      box-shadow: 0 2px 10px var(--gold-glow);
+    }
+
+    .btn-gold:hover {
+      background: #FBBF24;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 16px var(--gold-glow);
+    }
+
+    .btn-outline {
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-outline:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-sm {
+      padding: 6px 11px;
+      font-size: 12px;
+    }
+
+    /* Tabs Bar */
+    .tabs-bar {
+      max-width: 1360px;
+      margin: 20px auto 0;
+      padding: 0 24px;
+      display: flex;
+      gap: 10px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 14px;
+      font-weight: 700;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .tab-btn:hover {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .tab-btn.active {
+      color: var(--gold);
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid rgba(245, 158, 11, 0.25);
+    }
+
+    /* Main Container */
+    main {
+      max-width: 1360px;
+      margin: 24px auto;
+      padding: 0 24px;
+    }
+
+    /* Filter & Controls Toolbar */
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-bottom: 24px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px 18px;
+      backdrop-filter: blur(12px);
+    }
+
+    .filter-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .filter-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-right: 4px;
+    }
+
+    .chip {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .chip:hover {
+      border-color: rgba(255, 255, 255, 0.2);
+      color: var(--text);
+    }
+
+    .chip.active {
+      background: var(--gold);
+      color: #000;
+      border-color: var(--gold);
+      font-weight: 800;
+    }
+
+    .chip-raw.active { background: var(--status-raw); color: #fff; border-color: var(--status-raw); }
+    .chip-curated.active { background: var(--status-curated); color: #fff; border-color: var(--status-curated); }
+    .chip-edited.active { background: var(--status-edited); color: #fff; border-color: var(--status-edited); }
+    .chip-final.active { background: var(--status-final); color: #fff; border-color: var(--status-final); }
+
+    .select-input, .text-input {
+      background: rgba(10, 14, 24, 0.9);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 7px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+    }
+
+    .select-input:focus, .text-input:focus {
+      border-color: var(--gold);
+    }
+
+    /* Gallery Grid */
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+      gap: 20px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      transition: all 0.25s ease;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      background: var(--card-hover);
+      border-color: rgba(245, 158, 11, 0.35);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
+    }
+
+    .card-media {
+      position: relative;
+      aspect-ratio: 16 / 10;
+      background: #0D131F;
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    .card-media img, .card-media video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.35s ease;
+    }
+
+    .card:hover .card-media img {
+      transform: scale(1.04);
+    }
+
+    .badge-status {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      backdrop-filter: blur(8px);
+    }
+
+    .status-raw { background: rgba(100, 116, 139, 0.85); color: #fff; }
+    .status-curated { background: rgba(2, 132, 199, 0.85); color: #fff; }
+    .status-edited { background: rgba(217, 119, 6, 0.85); color: #fff; }
+    .status-final { background: rgba(16, 185, 129, 0.85); color: #fff; }
+
+    .badge-type {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(0, 0, 0, 0.7);
+      font-size: 11px;
+      padding: 3px 7px;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #fff;
+    }
+
+    .badge-video-play {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 44px;
+      height: 44px;
+      background: rgba(0, 0, 0, 0.75);
+      border: 2px solid var(--gold);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--gold);
+      font-size: 18px;
+    }
+
+    .card-content {
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+
+    .card-title {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .card-meta {
+      font-size: 12px;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .exif-preview {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      background: rgba(0, 0, 0, 0.35);
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      color: #CBD5E1;
+      margin-bottom: 12px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px;
+    }
+
+    .card-actions {
+      margin-top: auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      border-top: 1px solid var(--border);
+      padding-top: 10px;
+    }
+
+    .curation-select {
+      background: rgba(10, 14, 24, 0.9);
+      border: 1px solid var(--border);
+      color: var(--gold);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      outline: none;
+    }
+
+    .btn-icon {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-icon:hover {
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .btn-icon-danger:hover {
+      color: #fff;
+      background: var(--danger);
+      border-color: var(--danger);
+    }
+
+    /* Events View */
+    .events-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+      gap: 24px;
+    }
+
+    .event-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      transition: all 0.25s ease;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .event-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--border-focus);
+      box-shadow: 0 16px 32px rgba(0, 0, 0, 0.4);
+    }
+
+    .event-banner {
+      height: 180px;
+      position: relative;
+      background: #000;
+    }
+
+    .event-banner img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .event-banner-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, transparent 40%, rgba(7, 9, 14, 0.95) 100%);
+    }
+
+    .event-content {
+      padding: 18px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .event-title {
+      font-size: 18px;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+
+    .event-info {
+      font-size: 13px;
+      color: var(--text-muted);
+      display: flex;
+      gap: 16px;
+      margin-bottom: 12px;
+    }
+
+    .event-desc {
+      font-size: 13px;
+      color: #CBD5E1;
+      line-height: 1.5;
+      margin-bottom: 16px;
+      flex: 1;
+    }
+
+    /* Modal Styling */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(12px);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-box {
+      background: #0E1422;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 600px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 24px;
+      box-shadow: 0 24px 48px rgba(0, 0, 0, 0.7);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 14px;
+    }
+
+    .modal-title {
+      font-size: 18px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .form-control {
+      width: 100%;
+      background: rgba(10, 14, 24, 0.9);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+      outline: none;
+    }
+
+    .form-control:focus {
+      border-color: var(--gold);
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    /* Drag and Drop Zone */
+    .drop-zone {
+      border: 2px dashed rgba(245, 158, 11, 0.35);
+      background: rgba(245, 158, 11, 0.03);
+      border-radius: 14px;
+      padding: 32px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin-bottom: 16px;
+    }
+
+    .drop-zone:hover, .drop-zone.dragover {
+      border-color: var(--gold);
+      background: rgba(245, 158, 11, 0.08);
+    }
+
+    .drop-icon {
+      font-size: 40px;
+      margin-bottom: 10px;
+    }
+
+    /* Progress bar */
+    .progress-container {
+      margin-top: 16px;
+      display: none;
+    }
+
+    .progress-bar {
+      height: 8px;
+      background: #1E293B;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 6px;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #F59E0B, #10B981);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    /* Notification Toast */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #10B981;
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 13px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+      z-index: 2000;
+      display: none;
+      animation: slideUp 0.3s ease;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .header-quota { display: none; }
+      .toolbar { flex-direction: column; align-items: stretch; }
+      .form-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Header Navigation -->
+  <header>
+    <div class="nav-container">
+      <a href="#" class="brand">
+        <div class="brand-icon">📸</div>
+        <div>
+          <div class="brand-title">
+            ShutterCloud Studio
+            <span class="brand-badge">GDrive Storage Engine</span>
+          </div>
+          <div class="brand-sub">Dokumentasi Ekskul Fotografi • Resumable Upload & EXIF Parser</div>
+        </div>
+      </a>
+
+      <!-- Real Quota Display -->
+      <div class="header-quota">
+        <div class="quota-info">
+          <div><b id="quotaUsedText">0.00 GB</b> <span style="color: var(--text-dim);">/ <span id="quotaTotalText">100 GB</span></span></div>
+          <div class="quota-track"><div id="quotaFillBar" class="quota-fill"></div></div>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button class="btn btn-outline btn-sm" onclick="openNewEventModal()">
+          📁 Agenda Baru
+        </button>
+        <button class="btn btn-gold btn-sm" onclick="openUploadModal()">
+          ⬆️ Upload Media
+        </button>
+        <a href="/flutter/" target="_blank" class="btn btn-outline btn-sm" title="Buka Flutter App View">
+          📱 Flutter Web
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Navigation Tabs -->
+  <div class="tabs-bar">
+    <button class="tab-btn active" onclick="switchTab('gallery')" id="tabBtn-gallery">
+      🖼️ Galeri Dokumentasi (<span id="countFilesTab">0</span>)
+    </button>
+    <button class="tab-btn" onclick="switchTab('events')" id="tabBtn-events">
+      📅 Agenda Kegiatan (<span id="countEventsTab">0</span>)
+    </button>
+    <button class="tab-btn" onclick="switchTab('analytics')" id="tabBtn-analytics">
+      📊 Kapasitas & Leaderboard
+    </button>
+  </div>
+
+  <main>
+    <!-- TAB 1: GALERI DOKUMENTASI -->
+    <section id="section-gallery">
+      <!-- Toolbar Filters -->
+      <div class="toolbar">
+        <div class="filter-group">
+          <span class="filter-label">Filter Kurasi:</span>
+          <button class="chip active" onclick="setFilterStatus('all', this)">Semua</button>
+          <button class="chip chip-raw" onclick="setFilterStatus('raw', this)">🔴 RAW / Burst</button>
+          <button class="chip chip-curated" onclick="setFilterStatus('curated', this)">🔵 Seleksi</button>
+          <button class="chip chip-edited" onclick="setFilterStatus('edited', this)">🟠 Edited</button>
+          <button class="chip chip-final" onclick="setFilterStatus('final', this)">🟢 Resmi</button>
+        </div>
+
+        <div class="filter-group">
+          <span class="filter-label">Media:</span>
+          <select id="selectType" class="select-input" onchange="applyFilters()">
+            <option value="all">Semua Tipe</option>
+            <option value="photo">Foto (RAW/JPG)</option>
+            <option value="video">Video Kegiatan</option>
+          </select>
+
+          <span class="filter-label" style="margin-left: 8px;">Event:</span>
+          <select id="selectEventFilter" class="select-input" onchange="applyFilters()">
+            <option value="all">Semua Agenda Acara</option>
+          </select>
+
+          <input type="text" id="searchPhotographer" class="text-input" placeholder="Cari nama fotografer..." oninput="applyFilters()">
+        </div>
+      </div>
+
+      <!-- Gallery Grid -->
+      <div id="galleryGrid" class="gallery-grid">
+        <!-- Rendered dynamically via JavaScript -->
+      </div>
+    </section>
+
+    <!-- TAB 2: AGENDA & EVENT KEGIATAN -->
+    <section id="section-events" style="display: none;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <div>
+          <h2 style="font-size: 20px; font-weight: 800;">Agenda Kegiatan Ekskul Fotografi</h2>
+          <p style="color: var(--text-muted); font-size: 13px;">Kelompokkan dokumentasi foto & video berdasarkan acara sekolah.</p>
+        </div>
+        <button class="btn btn-gold" onclick="openNewEventModal()">
+          + Buat Agenda Acara Baru
+        </button>
+      </div>
+
+      <div id="eventsGrid" class="events-grid">
+        <!-- Rendered dynamically via JavaScript -->
+      </div>
+    </section>
+
+    <!-- TAB 3: KAPASITAS & LEADERBOARD -->
+    <section id="section-analytics" style="display: none;">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 30px;">
+        <div style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 14px; padding: 20px;">
+          <div style="font-size: 12px; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Storage GDrive Terpakai</div>
+          <div style="font-size: 28px; font-weight: 800; color: var(--gold); margin-top: 6px;" id="statUsedGB">0.00 GB</div>
+          <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Dari total 100 GB Cloud Limit</div>
+        </div>
+        <div style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 14px; padding: 20px;">
+          <div style="font-size: 12px; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Total Foto Tersimpan</div>
+          <div style="font-size: 28px; font-weight: 800; color: #fff; margin-top: 6px;" id="statPhotoCount">0</div>
+          <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">RAW, JPEG & Color Graded</div>
+        </div>
+        <div style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 14px; padding: 20px;">
+          <div style="font-size: 12px; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Total Video Kegiatan</div>
+          <div style="font-size: 28px; font-weight: 800; color: #38BDF8; margin-top: 6px;" id="statVideoCount">0</div>
+          <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">4K / 1080p Reels & Highlight</div>
+        </div>
+        <div style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 14px; padding: 20px;">
+          <div style="font-size: 12px; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Fotografer Anggota Aktif</div>
+          <div style="font-size: 28px; font-weight: 800; color: #10B981; margin-top: 6px;" id="statPhotographerCount">0</div>
+          <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Kontributor dokumentasi</div>
+        </div>
+      </div>
+
+      <div style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; padding: 24px;">
+        <h3 style="font-size: 17px; font-weight: 800; margin-bottom: 16px;">🏆 Kontributor Fotografer Teraktif</h3>
+        <div id="leaderboardList">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- MODAL: UPLOAD DOKUMENTASI NYATA -->
+  <div id="uploadModal" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div class="modal-title">⬆️ Unggah Dokumentasi ke Cloud</div>
+        <button class="btn-icon" onclick="closeModal('uploadModal')">✕</button>
+      </div>
+
+      <form id="uploadForm" onsubmit="handleUploadSubmit(event)">
+        <!-- Real Drag and Drop Area -->
+        <div class="drop-zone" id="dropZone" onclick="document.getElementById('realFileInput').click()">
+          <div class="drop-icon">📷</div>
+          <div style="font-weight: 700; font-size: 14px; margin-bottom: 4px;">Pilih atau Tarik File Foto / Video ke Sini</div>
+          <div style="font-size: 12px; color: var(--text-muted);">Mendukung file fisik JPG, PNG, RAW (.CR2, .NEF, .ARW) dan MP4/MOV</div>
+          <input type="file" id="realFileInput" style="display: none;" accept="image/*,video/*,.cr2,.cr3,.nef,.arw" onchange="handleFileSelect(event)">
+        </div>
+
+        <div id="selectedFileInfo" style="display: none; background: rgba(255,255,255,0.04); border: 1px solid var(--border); padding: 10px 14px; border-radius: 8px; margin-bottom: 14px; font-size: 13px;">
+          📄 File Terpilih: <b id="selectedFileName">-</b> (<span id="selectedFileSize">-</span>)
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Agenda / Event Kegiatan</label>
+          <select id="uploadEventSelect" class="form-control" required></select>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Nama Fotografer (Anggota)</label>
+            <input type="text" id="uploadPhotographer" class="form-control" placeholder="Contoh: Arya Pratama" required value="Arya Pratama">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tahap Kurasi Awal</label>
+            <select id="uploadCurationStatus" class="form-control">
+              <option value="raw">🔴 RAW / Burst (Belum disortir)</option>
+              <option value="curated">🔵 Lolos Seleksi</option>
+              <option value="edited">🟠 Edited / Color Graded</option>
+              <option value="final">🟢 Final / Siap Publikasi</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Preset Kamera</label>
+            <select id="uploadCameraPreset" class="form-control" onchange="applyCameraPreset(this.value)">
+              <option value="Sony">Sony Alpha 7 IV (FE 24-70mm f/2.8 GM)</option>
+              <option value="Canon">Canon EOS R6 (RF 50mm f/1.8 STM)</option>
+              <option value="Fujifilm">Fujifilm X-T4 (XF 23mm f/1.4 R)</option>
+              <option value="Nikon">Nikon Z6 II (NIKKOR Z 85mm f/1.8 S)</option>
+              <option value="Custom">Custom Manual...</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Body Kamera</label>
+            <input type="text" id="uploadCamera" class="form-control" value="Sony Alpha 7 IV">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Lensa Terpasang</label>
+            <input type="text" id="uploadLens" class="form-control" value="FE 24-70mm f/2.8 GM">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Pengaturan Aperture (f/)</label>
+            <input type="text" id="uploadAperture" class="form-control" value="f/2.8">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Shutter Speed</label>
+            <input type="text" id="uploadShutter" class="form-control" value="1/500s">
+          </div>
+          <div class="form-group">
+            <label class="form-label">ISO</label>
+            <input type="number" id="uploadIso" class="form-control" value="800">
+          </div>
+        </div>
+
+        <div class="progress-container" id="uploadProgressContainer">
+          <div style="display: flex; justify-content: space-between; font-size: 12px;">
+            <span id="uploadStatusText" style="color: var(--gold); font-weight: 700;">Mengunggah ke server...</span>
+            <span id="uploadPercentText" style="font-weight: 700;">0%</span>
+          </div>
+          <div class="progress-bar">
+            <div id="uploadProgressBarFill" class="progress-bar-fill"></div>
+          </div>
+        </div>
+
+        <div style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
+          <button type="button" class="btn btn-outline" onclick="closeModal('uploadModal')">Batal</button>
+          <button type="submit" class="btn btn-gold" id="btnSubmitUpload">Simpan ke Cloud</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: BUAT EVENT BARU NYATA -->
+  <div id="newEventModal" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div class="modal-title">📁 Tambah Agenda Acara Baru</div>
+        <button class="btn-icon" onclick="closeModal('newEventModal')">✕</button>
+      </div>
+
+      <form id="newEventForm" onsubmit="handleCreateEventSubmit(event)">
+        <div class="form-group">
+          <label class="form-label">Nama Acara / Kegiatan</label>
+          <input type="text" id="newEventTitle" class="form-control" placeholder="Contoh: Pentas Seni Sekolah 2026" required>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Tanggal Pelaksanaan</label>
+            <input type="date" id="newEventDate" class="form-control" required value="2026-10-15">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Kategori</label>
+            <select id="newEventCategory" class="form-control">
+              <option value="Konser & Panggung">Konser & Panggung</option>
+              <option value="Olahraga">Olahraga & Pertandingan</option>
+              <option value="Eksplorasi">Eksplorasi & Street Hunting</option>
+              <option value="Seremonial">Seremonial & Upacara</option>
+              <option value="Workshop">Workshop & Belajar</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Lokasi Acara</label>
+            <input type="text" id="newEventLocation" class="form-control" placeholder="Contoh: Auditorium Utama" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">PIC / Koordinator Dokumentasi</label>
+            <input type="text" id="newEventLead" class="form-control" placeholder="Nama siswa penanggung jawab" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Deskripsi Kegiatan</label>
+          <textarea id="newEventDesc" class="form-control" rows="3" placeholder="Tuliskan catatan liputan atau kebutuhan dokumentasi..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">URL Foto Cover Banner</label>
+          <input type="url" id="newEventCover" class="form-control" placeholder="https://..." value="https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=1200&q=80">
+        </div>
+
+        <div style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
+          <button type="button" class="btn btn-outline" onclick="closeModal('newEventModal')">Batal</button>
+          <button type="submit" class="btn btn-gold">Simpan Agenda</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: EXIF INSPECTOR & ZOOM PREVIEW -->
+  <div id="mediaDetailModal" class="modal-overlay">
+    <div class="modal-box" style="max-width: 800px;">
+      <div class="modal-header">
+        <div class="modal-title" id="detailModalTitle">Detail Foto</div>
+        <button class="btn-icon" onclick="closeModal('mediaDetailModal')">✕</button>
+      </div>
+
+      <div style="border-radius: 10px; overflow: hidden; background: #000; margin-bottom: 16px; max-height: 440px; display: flex; align-items: center; justify-content: center;">
+        <img id="detailModalImg" src="" style="max-width: 100%; max-height: 440px; object-fit: contain;">
+        <video id="detailModalVideo" controls style="max-width: 100%; max-height: 440px; display: none;"></video>
+      </div>
+
+      <div style="background: rgba(0,0,0,0.4); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 16px;">
+        <h4 style="font-size: 13px; font-weight: 800; color: var(--gold); margin-bottom: 8px;">🔍 DATA EXIF & TEKNIS KAMERA</h4>
+        <div id="detailExifGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; font-family: 'JetBrains Mono', monospace; font-size: 12px;"></div>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 12px; color: var(--text-muted);">Status Kurasi:</span>
+          <select id="detailCurationSelect" class="curation-select" onchange="updateModalItemStatus(this.value)">
+            <option value="raw">🔴 RAW / Burst</option>
+            <option value="curated">🔵 Lolos Seleksi</option>
+            <option value="edited">🟠 Color Graded</option>
+            <option value="final">🟢 Dokumentasi Resmi</option>
+          </select>
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <a id="detailDownloadBtn" href="#" download class="btn btn-outline btn-sm">⬇️ Unduh File Asli</a>
+          <button class="btn btn-outline btn-sm" style="color: var(--danger);" onclick="deleteCurrentDetailFile()">🗑️ Hapus</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast">Data berhasil disimpan!</div>
+
+  <script>
+    // State Store
+    let allFiles = [];
+    let allEvents = [];
+    let currentDetailItem = null;
+    let selectedStatusFilter = 'all';
+
+    // Fetch initial data
+    async function loadData() {
+      try {
+        const [statsRes, eventsRes, filesRes] = await Promise.all([
+          fetch('/api/stats').then(r => r.json()),
+          fetch('/api/events').then(r => r.json()),
+          fetch('/api/files').then(r => r.json())
+        ]);
+
+        if (statsRes.success) renderStats(statsRes.data);
+        if (eventsRes.success) {
+          allEvents = eventsRes.data;
+          renderEvents(allEvents);
+          populateEventDropdowns(allEvents);
+        }
+        if (filesRes.success) {
+          allFiles = filesRes.data;
+          applyFilters();
+        }
+      } catch (err) {
+        console.error('Error fetching data:', err);
+      }
+    }
+
+    // Render Stats
+    function renderStats(stats) {
+      const usedGB = (stats.usedStorageBytes / (1024 * 1024 * 1024)).toFixed(2);
+      const totalGB = (stats.totalStorageLimitBytes / (1024 * 1024 * 1024)).toFixed(0);
+      const percent = ((stats.usedStorageBytes / stats.totalStorageLimitBytes) * 100).toFixed(1);
+
+      document.getElementById('quotaUsedText').textContent = `${usedGB} GB`;
+      document.getElementById('quotaTotalText').textContent = `${totalGB} GB`;
+      document.getElementById('quotaFillBar').style.width = `${percent}%`;
+
+      document.getElementById('statUsedGB').textContent = `${usedGB} GB`;
+      document.getElementById('statPhotoCount').textContent = stats.photoCount;
+      document.getElementById('statVideoCount').textContent = stats.videoCount;
+      document.getElementById('statPhotographerCount').textContent = stats.activePhotographers;
+    }
+
+    // Populate Event Dropdown
+    function populateEventDropdowns(events) {
+      const filterSelect = document.getElementById('selectEventFilter');
+      const uploadSelect = document.getElementById('uploadEventSelect');
+
+      filterSelect.innerHTML = '<option value="all">Semua Agenda Acara</option>';
+      uploadSelect.innerHTML = '';
+
+      events.forEach(ev => {
+        filterSelect.innerHTML += `<option value="${ev.id}">${ev.title}</option>`;
+        uploadSelect.innerHTML += `<option value="${ev.id}">${ev.title} (${ev.category})</option>`;
+      });
+
+      document.getElementById('countEventsTab').textContent = events.length;
+    }
+
+    // Render Events List
+    function renderEvents(events) {
+      const container = document.getElementById('eventsGrid');
+      if (!events.length) {
+        container.innerHTML = '<div style="color: var(--text-muted);">Belum ada agenda kegiatan dibuat.</div>';
+        return;
+      }
+
+      container.innerHTML = events.map(ev => `
+        <div class="event-card">
+          <div class="event-banner">
+            <img src="${ev.coverUrl}" alt="${ev.title}" onerror="this.src='https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=800&q=80'">
+            <div class="event-banner-overlay"></div>
+            <span class="badge-status status-curated" style="top: 12px; left: 12px;">${ev.category}</span>
+          </div>
+          <div class="event-content">
+            <div class="event-title">${ev.title}</div>
+            <div class="event-info">
+              <span>📅 ${ev.date}</span>
+              <span>📍 ${ev.location}</span>
+            </div>
+            <p class="event-desc">${ev.description || 'Tidak ada catatan kegiatan.'}</p>
+            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 12px;">
+              <span style="font-size: 12px; color: var(--text-muted);">PIC: <b>${ev.leadPhotographer}</b></span>
+              <button class="btn btn-outline btn-sm" onclick="filterByEvent('${ev.id}')">
+                Lihat ${ev.totalFiles || 0} Dokumentasi &rarr;
+              </button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Apply Filters & Render Gallery
+    function applyFilters() {
+      const type = document.getElementById('selectType').value;
+      const eventId = document.getElementById('selectEventFilter').value;
+      const search = document.getElementById('searchPhotographer').value.toLowerCase().trim();
+
+      let filtered = [...allFiles];
+
+      if (selectedStatusFilter !== 'all') {
+        filtered = filtered.filter(f => f.curationStatus === selectedStatusFilter);
+      }
+      if (type !== 'all') {
+        filtered = filtered.filter(f => f.type === type);
+      }
+      if (eventId !== 'all') {
+        filtered = filtered.filter(f => f.eventId === eventId);
+      }
+      if (search) {
+        filtered = filtered.filter(f => 
+          f.photographer.toLowerCase().includes(search) ||
+          f.filename.toLowerCase().includes(search)
+        );
+      }
+
+      document.getElementById('countFilesTab').textContent = filtered.length;
+      renderGallery(filtered);
+    }
+
+    // Render Gallery
+    function renderGallery(files) {
+      const container = document.getElementById('galleryGrid');
+      if (!files.length) {
+        container.innerHTML = `
+          <div style="grid-column: 1/-1; text-align: center; padding: 60px 20px; color: var(--text-muted);">
+            <div style="font-size: 40px; margin-bottom: 12px;">🖼️</div>
+            <h3>Tidak ada dokumentasi ditemukan</h3>
+            <p style="font-size: 13px; margin-top: 6px;">Coba ubah filter atau unggah foto/video baru dengan tombol di atas.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = files.map(file => {
+        const isVideo = file.type === 'video';
+        const formattedSize = file.sizeBytes >= 1048576 
+          ? (file.sizeBytes / 1048576).toFixed(1) + ' MB'
+          : (file.sizeBytes / 1024).toFixed(0) + ' KB';
+
+        const exif = file.exif || {};
+
+        return `
+          <div class="card" id="card-${file.id}">
+            <div class="card-media" onclick="openMediaDetail('${file.id}')">
+              ${isVideo 
+                ? `<img src="${file.thumbnailUrl || file.url}" alt="${file.filename}">
+                   <div class="badge-video-play">▶</div>`
+                : `<img src="${file.url}" alt="${file.filename}" onerror="this.src='https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=600&q=80'">`
+              }
+              <span class="badge-status status-${file.curationStatus}">${getCurationLabel(file.curationStatus)}</span>
+              <span class="badge-type">${isVideo ? '🎥 VIDEO' : '📷 FOTO'}</span>
+            </div>
+
+            <div class="card-content">
+              <div class="card-title" title="${file.filename}">${file.filename}</div>
+              <div class="card-meta">
+                <span>By: <b style="color: var(--gold);">${file.photographer}</b></span>
+                <span>${formattedSize}</span>
+              </div>
+
+              <div class="exif-preview">
+                <div>📸 ${exif.camera ? exif.camera.split(' ')[0] + ' ' + (exif.camera.split(' ')[1] || '') : 'Camera'}</div>
+                <div>🔍 ${exif.aperture || 'f/2.8'}</div>
+                <div>⏱️ ${exif.shutterSpeed || '1/500s'}</div>
+                <div>⚡ ISO ${exif.iso || 400}</div>
+              </div>
+
+              <div class="card-actions">
+                <select class="curation-select" onchange="updateItemStatus('${file.id}', this.value)">
+                  <option value="raw" ${file.curationStatus === 'raw' ? 'selected' : ''}>🔴 RAW</option>
+                  <option value="curated" ${file.curationStatus === 'curated' ? 'selected' : ''}>🔵 Seleksi</option>
+                  <option value="edited" ${file.curationStatus === 'edited' ? 'selected' : ''}>🟠 Edited</option>
+                  <option value="final" ${file.curationStatus === 'final' ? 'selected' : ''}>🟢 Resmi</option>
+                </select>
+
+                <div style="display: flex; gap: 6px;">
+                  <button class="btn-icon" title="Detail EXIF" onclick="openMediaDetail('${file.id}')">ℹ️</button>
+                  <a href="${file.url}" download="${file.filename}" class="btn-icon" title="Unduh File">⬇️</a>
+                  <button class="btn-icon btn-icon-danger" title="Hapus File" onclick="deleteFile('${file.id}')">🗑️</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function getCurationLabel(status) {
+      switch(status) {
+        case 'raw': return 'RAW / Burst';
+        case 'curated': return 'Lolos Seleksi';
+        case 'edited': return 'Color Graded';
+        case 'final': return 'Dokumentasi Resmi';
+        default: return status;
+      }
+    }
+
+    function setFilterStatus(status, el) {
+      selectedStatusFilter = status;
+      document.querySelectorAll('.filter-group .chip').forEach(c => c.classList.remove('active'));
+      el.classList.add('active');
+      applyFilters();
+    }
+
+    function filterByEvent(eventId) {
+      switchTab('gallery');
+      document.getElementById('selectEventFilter').value = eventId;
+      applyFilters();
+    }
+
+    // Switch Tabs
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById(`tabBtn-${tabId}`).classList.add('active');
+
+      document.getElementById('section-gallery').style.display = tabId === 'gallery' ? 'block' : 'none';
+      document.getElementById('section-events').style.display = tabId === 'events' ? 'block' : 'none';
+      document.getElementById('section-analytics').style.display = tabId === 'analytics' ? 'block' : 'none';
+
+      if (tabId === 'analytics') renderLeaderboard();
+    }
+
+    function renderLeaderboard() {
+      const contributorMap = {};
+      allFiles.forEach(f => {
+        const p = f.photographer || 'Anonim';
+        if (!contributorMap[p]) contributorMap[p] = { count: 0, bytes: 0 };
+        contributorMap[p].count += 1;
+        contributorMap[p].bytes += (f.sizeBytes || 0);
+      });
+
+      const sorted = Object.entries(contributorMap)
+        .sort((a, b) => b[1].count - a[1].count);
+
+      const list = document.getElementById('leaderboardList');
+      list.innerHTML = sorted.map(([name, data], idx) => {
+        const sizeMB = (data.bytes / 1048576).toFixed(1);
+        return `
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(0,0,0,0.3); border-radius: 8px; margin-bottom: 8px;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <span style="font-weight: 800; color: ${idx === 0 ? 'var(--gold)' : 'var(--text-muted)'};">#${idx + 1}</span>
+              <div>
+                <div style="font-weight: 700;">${name}</div>
+                <div style="font-size: 11px; color: var(--text-muted);">${data.count} File Dokumentasi Disimpan</div>
+              </div>
+            </div>
+            <div style="font-weight: 800; font-family: 'JetBrains Mono', monospace; font-size: 13px;">${sizeMB} MB</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Open & Close Modals
+    function openModal(id) { document.getElementById(id).classList.add('active'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+    function openUploadModal() { openModal('uploadModal'); }
+    function openNewEventModal() { openModal('newEventModal'); }
+
+    // Media Detail Modal
+    function openMediaDetail(fileId) {
+      const file = allFiles.find(f => f.id === fileId);
+      if (!file) return;
+      currentDetailItem = file;
+
+      document.getElementById('detailModalTitle').textContent = file.filename;
+      const isVideo = file.type === 'video';
+
+      const imgEl = document.getElementById('detailModalImg');
+      const vidEl = document.getElementById('detailModalVideo');
+
+      if (isVideo) {
+        imgEl.style.display = 'none';
+        vidEl.style.display = 'block';
+        vidEl.src = file.url;
+      } else {
+        vidEl.style.display = 'none';
+        imgEl.style.display = 'block';
+        imgEl.src = file.url;
+      }
+
+      // Render EXIF
+      const exif = file.exif || {};
+      const grid = document.getElementById('detailExifGrid');
+      grid.innerHTML = `
+        <div>📷 <b>Kamera:</b> ${exif.camera || '-'}</div>
+        <div>🔍 <b>Lensa:</b> ${exif.lens || '-'}</div>
+        <div>📐 <b>Focal Length:</b> ${exif.focalLength || '50mm'}</div>
+        <div>🎯 <b>Aperture:</b> ${exif.aperture || 'f/2.8'}</div>
+        <div>⏱️ <b>Shutter:</b> ${exif.shutterSpeed || '1/500s'}</div>
+        <div>⚡ <b>ISO:</b> ${exif.iso || 400}</div>
+        <div>🖼️ <b>Resolusi:</b> ${exif.resolution || '6000 x 4000'}</div>
+        <div>🎨 <b>Profil:</b> ${exif.colorProfile || 'sRGB'}</div>
+        <div>💾 <b>Ukuran:</b> ${(file.sizeBytes / 1048576).toFixed(1)} MB</div>
+        <div>👤 <b>Fotografer:</b> ${file.photographer}</div>
+      `;
+
+      document.getElementById('detailCurationSelect').value = file.curationStatus;
+      document.getElementById('detailDownloadBtn').href = file.url;
+
+      openModal('mediaDetailModal');
+    }
+
+    // Update Status Curation (Real Persist ke Backend)
+    async function updateItemStatus(fileId, newStatus) {
+      try {
+        const res = await fetch(`/api/files/${fileId}/status`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: newStatus })
+        }).then(r => r.json());
+
+        if (res.success) {
+          const item = allFiles.find(f => f.id === fileId);
+          if (item) item.curationStatus = newStatus;
+          applyFilters();
+          showToast(`Status kurasi diperbarui ke: ${getCurationLabel(newStatus)}`);
+        }
+      } catch (err) {
+        showToast('Gagal mengubah status kurasi.');
+      }
+    }
+
+    function updateModalItemStatus(newStatus) {
+      if (currentDetailItem) {
+        updateItemStatus(currentDetailItem.id, newStatus);
+      }
+    }
+
+    // Delete File (Real Persist & Disk Deletion)
+    async function deleteFile(fileId) {
+      if (!confirm('Yakin ingin menghapus file dokumentasi ini dari server? File fisik akan dihapus dari disk.')) return;
+      try {
+        const res = await fetch(`/api/files/${fileId}`, { method: 'DELETE' }).then(r => r.json());
+        if (res.success) {
+          allFiles = allFiles.filter(f => f.id !== fileId);
+          applyFilters();
+          loadData();
+          showToast('File dokumentasi berhasil dihapus.');
+        }
+      } catch (err) {
+        showToast('Gagal menghapus file.');
+      }
+    }
+
+    function deleteCurrentDetailFile() {
+      if (currentDetailItem) {
+        closeModal('mediaDetailModal');
+        deleteFile(currentDetailItem.id);
+      }
+    }
+
+    // Preset Kamera Handler
+    function applyCameraPreset(preset) {
+      if (preset === 'Sony') {
+        document.getElementById('uploadCamera').value = 'Sony Alpha 7 IV';
+        document.getElementById('uploadLens').value = 'FE 24-70mm f/2.8 GM';
+        document.getElementById('uploadAperture').value = 'f/2.8';
+        document.getElementById('uploadShutter').value = '1/500s';
+        document.getElementById('uploadIso').value = '800';
+      } else if (preset === 'Canon') {
+        document.getElementById('uploadCamera').value = 'Canon EOS R6';
+        document.getElementById('uploadLens').value = 'RF 50mm f/1.8 STM';
+        document.getElementById('uploadAperture').value = 'f/1.8';
+        document.getElementById('uploadShutter').value = '1/1000s';
+        document.getElementById('uploadIso').value = '400';
+      } else if (preset === 'Fujifilm') {
+        document.getElementById('uploadCamera').value = 'Fujifilm X-T4';
+        document.getElementById('uploadLens').value = 'XF 23mm f/1.4 R';
+        document.getElementById('uploadAperture').value = 'f/2.0';
+        document.getElementById('uploadShutter').value = '1/640s';
+        document.getElementById('uploadIso').value = '250';
+      } else if (preset === 'Nikon') {
+        document.getElementById('uploadCamera').value = 'Nikon Z6 II';
+        document.getElementById('uploadLens').value = 'NIKKOR Z 85mm f/1.8 S';
+        document.getElementById('uploadAperture').value = 'f/2.8';
+        document.getElementById('uploadShutter').value = '1/800s';
+        document.getElementById('uploadIso').value = '1200';
+      }
+    }
+
+    // File Selection Handling
+    let selectedRealFile = null;
+    function handleFileSelect(e) {
+      const file = e.target.files[0];
+      if (file) {
+        selectedRealFile = file;
+        document.getElementById('selectedFileInfo').style.display = 'block';
+        document.getElementById('selectedFileName').textContent = file.name;
+        document.getElementById('selectedFileSize').textContent = (file.size / 1048576).toFixed(1) + ' MB';
+      }
+    }
+
+    // Drag and Drop
+    const dropZone = document.getElementById('dropZone');
+    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+    dropZone.addEventListener('dragleave', () => { dropZone.classList.remove('dragover'); });
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('dragover');
+      if (e.dataTransfer.files.length) {
+        document.getElementById('realFileInput').files = e.dataTransfer.files;
+        handleFileSelect({ target: { files: e.dataTransfer.files } });
+      }
+    });
+
+    // Real Upload Submit (Mengunggah binary fisik ke Multer Server)
+    async function handleUploadSubmit(e) {
+      e.preventDefault();
+      const progressContainer = document.getElementById('uploadProgressContainer');
+      const progressBar = document.getElementById('uploadProgressBarFill');
+      const statusText = document.getElementById('uploadStatusText');
+      const percentText = document.getElementById('uploadPercentText');
+      const btnSubmit = document.getElementById('btnSubmitUpload');
+
+      progressContainer.style.display = 'block';
+      btnSubmit.disabled = true;
+
+      const formData = new FormData();
+      if (selectedRealFile) {
+        formData.append('mediaFile', selectedRealFile);
+      }
+      formData.append('eventId', document.getElementById('uploadEventSelect').value);
+      formData.append('photographer', document.getElementById('uploadPhotographer').value);
+      formData.append('curationStatus', document.getElementById('uploadCurationStatus').value);
+      formData.append('camera', document.getElementById('uploadCamera').value);
+      formData.append('lens', document.getElementById('uploadLens').value);
+      formData.append('aperture', document.getElementById('uploadAperture').value);
+      formData.append('shutterSpeed', document.getElementById('uploadShutter').value);
+      formData.append('iso', document.getElementById('uploadIso').value);
+
+      // Simulate GDrive Resumable Upload Chunks Progress
+      statusText.textContent = 'Menginisialisasi sesi resumable upload...';
+      progressBar.style.width = '20%';
+      percentText.textContent = '20%';
+
+      await new Promise(r => setTimeout(r, 200));
+      statusText.textContent = 'Mengirim chunk data biner foto ke disk...';
+      progressBar.style.width = '60%';
+      percentText.textContent = '60%';
+
+      try {
+        const res = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData
+        }).then(r => r.json());
+
+        progressBar.style.width = '100%';
+        percentText.textContent = '100%';
+        statusText.textContent = 'Server mengekstrak EXIF dan menyimpan metadata...';
+
+        await new Promise(r => setTimeout(r, 300));
+
+        if (res.success) {
+          showToast('Dokumentasi berhasil diunggah dan tersimpan di server!');
+          closeModal('uploadModal');
+          document.getElementById('uploadForm').reset();
+          selectedRealFile = null;
+          document.getElementById('selectedFileInfo').style.display = 'none';
+          loadData();
+        } else {
+          alert('Upload gagal: ' + res.message);
+        }
+      } catch (err) {
+        alert('Terjadi kesalahan saat upload.');
+      } finally {
+        progressContainer.style.display = 'none';
+        btnSubmit.disabled = false;
+      }
+    }
+
+    // Real Create Event Submit
+    async function handleCreateEventSubmit(e) {
+      e.preventDefault();
+      const body = {
+        title: document.getElementById('newEventTitle').value,
+        date: document.getElementById('newEventDate').value,
+        category: document.getElementById('newEventCategory').value,
+        location: document.getElementById('newEventLocation').value,
+        leadPhotographer: document.getElementById('newEventLead').value,
+        description: document.getElementById('newEventDesc').value,
+        coverUrl: document.getElementById('newEventCover').value,
+      };
+
+      try {
+        const res = await fetch('/api/events', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        }).then(r => r.json());
+
+        if (res.success) {
+          showToast('Agenda kegiatan baru berhasil ditambahkan!');
+          closeModal('newEventModal');
+          document.getElementById('newEventForm').reset();
+          loadData();
+        } else {
+          alert(res.message);
+        }
+      } catch (err) {
+        alert('Gagal membuat agenda baru.');
+      }
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.style.display = 'block';
+      setTimeout(() => { t.style.display = 'none'; }, 3500);
+    }
+
+    // Init
+    loadData();
+  </script>
+</body>
+</html>

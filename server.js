@@ -7,7 +7,7 @@ const fs = require('fs');
 const app = express();
 const PORT = process.env.PORT || 5050;
 
-// Enable CORS for Flutter Client (Mobile, Web, Desktop)
+// Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -16,16 +16,19 @@ app.use(express.urlencoded({ extended: true }));
 const BASE_UPLOADS = path.join(__dirname, 'uploads');
 const DATA_DIR = path.join(__dirname, 'data');
 const METADATA_FILE = path.join(DATA_DIR, 'metadata.json');
+const PUBLIC_DIR = path.join(__dirname, 'public');
+const FLUTTER_WEB_DIR = path.join(__dirname, 'fotografi_app', 'build', 'web');
 
 // Ensure directories exist
 if (!fs.existsSync(BASE_UPLOADS)) fs.mkdirSync(BASE_UPLOADS, { recursive: true });
 if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+if (!fs.existsSync(PUBLIC_DIR)) fs.mkdirSync(PUBLIC_DIR, { recursive: true });
 
-// Initial Mock Metadata if not exists
-const defaultData = {
+// Initial Default Data if metadata.json does not exist
+const initialData = {
   stats: {
-    totalStorageLimitBytes: 100 * 1024 * 1024 * 1024, // 100 GB Cloud Quota
-    usedStorageBytes: 24.8 * 1024 * 1024 * 1024, // 24.8 GB used
+    totalStorageLimitBytes: 100 * 1024 * 1024 * 1024, // 100 GB
+    usedStorageBytes: 24.8 * 1024 * 1024 * 1024,
     photoCount: 1420,
     videoCount: 86,
     activePhotographers: 12
@@ -86,7 +89,7 @@ const defaultData = {
       mimeType: "image/jpeg",
       sizeBytes: 14200000,
       url: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=1200&q=80",
-      curationStatus: "final", // raw, curated, edited, final
+      curationStatus: "final",
       photographer: "Arya Pratama",
       uploadDate: "2026-09-19T10:14:00Z",
       exif: {
@@ -193,69 +196,92 @@ const defaultData = {
   ]
 };
 
-// Load or save initial database
+// Database persistence helpers
 function getDb() {
   if (!fs.existsSync(METADATA_FILE)) {
-    fs.writeFileSync(METADATA_FILE, JSON.stringify(defaultData, null, 2));
-    return defaultData;
+    fs.writeFileSync(METADATA_FILE, JSON.stringify(initialData, null, 2));
+    return initialData;
   }
   try {
-    return JSON.parse(fs.readFileSync(METADATA_FILE, 'utf8'));
+    const raw = fs.readFileSync(METADATA_FILE, 'utf8');
+    return JSON.parse(raw);
   } catch (e) {
-    return defaultData;
+    return initialData;
   }
 }
 
 function saveDb(data) {
+  // Recalculate storage stats automatically
+  let totalBytes = 0;
+  let photos = 0;
+  let videos = 0;
+  const photographers = new Set();
+
+  data.files.forEach(f => {
+    totalBytes += (f.sizeBytes || 0);
+    if (f.type === 'video') videos += 1;
+    else photos += 1;
+    if (f.photographer) photographers.add(f.photographer.trim());
+  });
+
+  data.stats = {
+    totalStorageLimitBytes: 100 * 1024 * 1024 * 1024, // 100 GB
+    usedStorageBytes: totalBytes > 0 ? totalBytes : (24.8 * 1024 * 1024 * 1024),
+    photoCount: photos > 0 ? photos : 1420,
+    videoCount: videos > 0 ? videos : 86,
+    activePhotographers: photographers.size > 0 ? photographers.size : 12
+  };
+
   fs.writeFileSync(METADATA_FILE, JSON.stringify(data, null, 2));
 }
 
-// Multer Storage Configuration (GDrive style chunk/file destination)
+// Multer Storage Configuration (Menyimpan file biner fisik)
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, BASE_UPLOADS);
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, uniqueSuffix + '-' + file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_'));
+    const cleanName = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_');
+    cb(null, `${uniqueSuffix}-${cleanName}`);
   }
 });
 
 const upload = multer({
   storage,
-  limits: { fileSize: 500 * 1024 * 1024 } // 500MB max per file
+  limits: { fileSize: 500 * 1024 * 1024 } // 500 MB per file
 });
 
-// Static files serving
+// Static routes
+app.use(express.static(PUBLIC_DIR));
 app.use('/uploads', express.static(BASE_UPLOADS));
 
-// ----------------- API ROUTES ----------------- //
+// Serve Flutter Web if build exists
+if (fs.existsSync(FLUTTER_WEB_DIR)) {
+  app.use('/flutter', express.static(FLUTTER_WEB_DIR));
+}
 
-// 1. Get Storage Stats (Dashboard Summary)
+// ----------------- REST API ROUTES ----------------- //
+
+// 1. Get Storage Stats
 app.get('/api/stats', (req, res) => {
   const db = getDb();
-  res.json({
-    success: true,
-    data: db.stats
-  });
+  res.json({ success: true, data: db.stats });
 });
 
-// 2. Get Events List (Kegiatan Dokumentasi)
+// 2. Get Events List
 app.get('/api/events', (req, res) => {
   const db = getDb();
-  res.json({
-    success: true,
-    data: db.events
-  });
+  res.json({ success: true, data: db.events });
 });
 
-// 3. Create New Event
+// 3. Create Event (Real Persistence)
 app.post('/api/events', (req, res) => {
   const db = getDb();
   const { title, date, location, description, leadPhotographer, category, coverUrl } = req.body;
 
   if (!title || !date) {
-    return res.status(400).json({ success: false, message: "Title dan Date wajib diisi" });
+    return res.status(400).json({ success: false, message: "Judul dan Tanggal agenda wajib diisi." });
   }
 
   const newEvent = {
@@ -263,7 +289,7 @@ app.post('/api/events', (req, res) => {
     title,
     date,
     location: location || "Sekolah",
-    description: description || "Dokumentasi kegiatan fotografi",
+    description: description || "Dokumentasi kegiatan ekskul fotografi",
     leadPhotographer: leadPhotographer || "Ekskul Fotografi",
     category: category || "Umum",
     coverUrl: coverUrl || "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=1200&q=80",
@@ -273,23 +299,45 @@ app.post('/api/events', (req, res) => {
   db.events.unshift(newEvent);
   saveDb(db);
 
-  res.status(201).json({ success: true, data: newEvent });
+  res.status(201).json({ success: true, message: "Agenda baru berhasil disimpan ke database!", data: newEvent });
 });
 
-// 4. Get Files by Event ID (Gallery & Filter)
+// 4. Delete Event (Real Persistence)
+app.delete('/api/events/:id', (req, res) => {
+  const db = getDb();
+  const { id } = req.params;
+
+  db.events = db.events.filter(e => e.id !== id);
+  // Also clean associated files
+  db.files = db.files.filter(f => f.eventId !== id);
+
+  saveDb(db);
+  res.json({ success: true, message: "Agenda kegiatan berhasil dihapus." });
+});
+
+// 5. Get All Files with Filters
+app.get('/api/files', (req, res) => {
+  const db = getDb();
+  const { status, type, photographer, eventId } = req.query;
+  let files = [...db.files];
+
+  if (status && status !== 'all') files = files.filter(f => f.curationStatus === status);
+  if (type && type !== 'all') files = files.filter(f => f.type === type);
+  if (eventId && eventId !== 'all') files = files.filter(f => f.eventId === eventId);
+  if (photographer) files = files.filter(f => f.photographer.toLowerCase().includes(photographer.toLowerCase()));
+
+  res.json({ success: true, total: files.length, data: files });
+});
+
+// 6. Get Files by Event ID
 app.get('/api/events/:id/files', (req, res) => {
   const db = getDb();
   const { id } = req.params;
   const { status, type } = req.query;
 
   let files = db.files.filter(f => f.eventId === id);
-
-  if (status && status !== 'all') {
-    files = files.filter(f => f.curationStatus === status);
-  }
-  if (type && type !== 'all') {
-    files = files.filter(f => f.type === type);
-  }
+  if (status && status !== 'all') files = files.filter(f => f.curationStatus === status);
+  if (type && type !== 'all') files = files.filter(f => f.type === type);
 
   res.json({
     success: true,
@@ -299,24 +347,7 @@ app.get('/api/events/:id/files', (req, res) => {
   });
 });
 
-// 5. Get All Files (Search & Recent)
-app.get('/api/files', (req, res) => {
-  const db = getDb();
-  const { status, type, photographer } = req.query;
-  let files = [...db.files];
-
-  if (status && status !== 'all') files = files.filter(f => f.curationStatus === status);
-  if (type && type !== 'all') files = files.filter(f => f.type === type);
-  if (photographer) files = files.filter(f => f.photographer.toLowerCase().includes(photographer.toLowerCase()));
-
-  res.json({
-    success: true,
-    total: files.length,
-    data: files
-  });
-});
-
-// 6. Upload Photo/Video Documentation
+// 7. Upload Media (Real File Saving & Metadata Persistence)
 app.post('/api/upload', upload.single('mediaFile'), (req, res) => {
   const db = getDb();
   const { eventId, photographer, curationStatus, camera, lens, iso, shutterSpeed, aperture } = req.body;
@@ -329,11 +360,12 @@ app.post('/api/upload', upload.single('mediaFile'), (req, res) => {
   const newDoc = {
     id: "f-" + Date.now().toString(36),
     eventId: eventId || (db.events[0] ? db.events[0].id : 'evt-001'),
-    filename: file ? file.originalname : (req.body.filename || "IMG_NEW.JPG"),
+    filename: file ? file.originalname : (req.body.filename || "IMG_" + Date.now() + ".JPG"),
     originalName: file ? file.originalname : "CAMERA_RAW.JPG",
+    physicalPath: file ? file.path : null,
     type: isVideo ? "video" : "photo",
     mimeType: file ? file.mimetype : (isVideo ? "video/mp4" : "image/jpeg"),
-    sizeBytes: file ? file.size : 15400000,
+    sizeBytes: file ? file.size : (isVideo ? 120000000 : 18500000),
     url: fileUrl,
     curationStatus: curationStatus || "raw",
     photographer: photographer || "Fotografer Anggota",
@@ -345,7 +377,7 @@ app.post('/api/upload', upload.single('mediaFile'), (req, res) => {
       aperture: aperture || "f/2.8",
       shutterSpeed: shutterSpeed || "1/500s",
       iso: Number(iso) || 400,
-      resolution: isVideo ? "3840 x 2160 (4K)" : "7008 x 4672 (33 MP)",
+      resolution: isVideo ? "3840 x 2160 (4K)" : "6000 x 4000 (24 MP)",
       colorProfile: "sRGB"
     }
   };
@@ -356,162 +388,79 @@ app.post('/api/upload', upload.single('mediaFile'), (req, res) => {
   const ev = db.events.find(e => e.id === newDoc.eventId);
   if (ev) ev.totalFiles = (ev.totalFiles || 0) + 1;
 
-  // Update storage stats
-  db.stats.usedStorageBytes += newDoc.sizeBytes;
-  if (newDoc.type === 'video') db.stats.videoCount += 1;
-  else db.stats.photoCount += 1;
-
   saveDb(db);
 
   res.status(201).json({
     success: true,
-    message: "File dokumentasi berhasil diunggah dan metadata EXIF diekstrak!",
+    message: "Dokumentasi berhasil diunggah ke server dan metadata tersimpan!",
     data: newDoc
   });
 });
 
-// 7. Update Curation Status (RAW -> Curated -> Edited -> Final)
+// 8. Update Curation Status (RAW -> Curated -> Edited -> Final)
 app.patch('/api/files/:id/status', (req, res) => {
   const db = getDb();
   const { id } = req.params;
   const { status } = req.body;
 
   const file = db.files.find(f => f.id === id);
-  if (!file) return res.status(404).json({ success: false, message: "File tidak ditemukan" });
+  if (!file) return res.status(404).json({ success: false, message: "File tidak ditemukan." });
 
   file.curationStatus = status;
   saveDb(db);
 
-  res.json({ success: true, message: `Status berhasil diubah ke ${status}`, data: file });
+  res.json({ success: true, message: `Status kurasi berhasil diubah ke ${status}`, data: file });
 });
 
-// 8. Web Preview Landing Page for Visual Inspection
-app.get('/', (req, res) => {
+// 9. Delete File (Physical Disk Deletion + Metadata Removal)
+app.delete('/api/files/:id', (req, res) => {
   const db = getDb();
-  const usedGB = (db.stats.usedStorageBytes / (1024 * 1024 * 1024)).toFixed(2);
-  const totalGB = (db.stats.totalStorageLimitBytes / (1024 * 1024 * 1024)).toFixed(0);
-  const percent = ((db.stats.usedStorageBytes / db.stats.totalStorageLimitBytes) * 100).toFixed(1);
+  const { id } = req.params;
 
-  res.send(`
-<!DOCTYPE html>
-<html lang="id">
-<head>
-  <meta charset="UTF-8">
-  <title>ShutterCloud - Photography Storage Server</title>
-  <style>
-    :root {
-      --bg: #0B0F19;
-      --card: #151D2F;
-      --card-border: #23314D;
-      --accent: #F59E0B;
-      --accent-glow: rgba(245, 158, 11, 0.25);
-      --text: #F8FAFC;
-      --subtext: #94A3B8;
-      --badge-raw: #64748B;
-      --badge-curated: #0284C7;
-      --badge-edited: #D97706;
-      --badge-final: #059669;
+  const fileIndex = db.files.findIndex(f => f.id === id);
+  if (fileIndex === -1) return res.status(404).json({ success: false, message: "File tidak ditemukan." });
+
+  const targetFile = db.files[fileIndex];
+
+  // Delete physical file from disk if exists
+  if (targetFile.physicalPath && fs.existsSync(targetFile.physicalPath)) {
+    try {
+      fs.unlinkSync(targetFile.physicalPath);
+    } catch (e) {
+      console.warn('Gagal menghapus file fisik:', e.message);
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
-    body { background: var(--bg); color: var(--text); padding: 32px 20px; line-height: 1.5; }
-    .container { max-width: 1200px; margin: 0 auto; }
-    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; padding-bottom: 16px; border-bottom: 1px solid var(--card-border); }
-    h1 { font-size: 26px; font-weight: 800; display: flex; align-items: center; gap: 10px; }
-    .badge-live { background: #10B981; color: #fff; font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 99px; text-transform: uppercase; }
-    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 30px; }
-    .stat-card { background: var(--card); border: 1px solid var(--card-border); border-radius: 12px; padding: 20px; }
-    .stat-title { font-size: 13px; color: var(--subtext); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px; }
-    .stat-val { font-size: 28px; font-weight: 700; color: #fff; margin-top: 6px; }
-    .progress-bar-bg { width: 100%; height: 8px; background: #1E293B; border-radius: 4px; overflow: hidden; margin-top: 10px; }
-    .progress-bar-fill { height: 100%; background: linear-gradient(90deg, #F59E0B, #10B981); border-radius: 4px; }
-    .events-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; margin-bottom: 36px; }
-    .event-card { background: var(--card); border: 1px solid var(--card-border); border-radius: 12px; overflow: hidden; transition: transform 0.2s, border-color 0.2s; }
-    .event-card:hover { transform: translateY(-4px); border-color: var(--accent); }
-    .event-cover { width: 100%; height: 180px; object-fit: cover; }
-    .event-body { padding: 16px; }
-    .event-title { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
-    .event-meta { font-size: 13px; color: var(--subtext); display: flex; gap: 12px; margin-bottom: 10px; }
-    .status-badge { display: inline-block; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; text-transform: uppercase; }
-    .raw { background: #334155; color: #94A3B8; }
-    .curated { background: #0369A1; color: #E0F2FE; }
-    .edited { background: #B45309; color: #FEF3C7; }
-    .final { background: #047857; color: #D1FAE5; }
-    .api-hint { background: #111827; border: 1px dashed #374151; padding: 14px 18px; border-radius: 8px; font-family: monospace; font-size: 13px; color: #A5B4FC; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <header>
-      <div>
-        <h1>📸 ShutterCloud Engine <span class="badge-live">GDrive Architecture Active</span></h1>
-        <p style="color: var(--subtext); font-size: 14px; margin-top: 4px;">Server Dokumentasi Foto & Video Ekskul Fotografi • Resumable Upload & EXIF Extractor</p>
-      </div>
-      <div>
-        <a href="/api/events" style="color: var(--accent); font-size: 14px; text-decoration: none; font-weight: 600; background: #1E293B; padding: 8px 14px; border-radius: 6px; border: 1px solid var(--card-border);">Buka REST API &rarr;</a>
-      </div>
-    </header>
+  }
 
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-title">Storage Terpakai</div>
-        <div class="stat-val">${usedGB} <span style="font-size: 16px; color: var(--subtext);">/ ${totalGB} GB</span></div>
-        <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${percent}%;"></div></div>
-        <small style="color: var(--subtext); display: block; margin-top: 6px;">${percent}% Quota Server</small>
-      </div>
-      <div class="stat-card">
-        <div class="stat-title">Total Foto Dokumentasi</div>
-        <div class="stat-val">${db.stats.photoCount}</div>
-        <small style="color: var(--subtext); display: block; margin-top: 6px;">RAW, JPEG & Color Graded</small>
-      </div>
-      <div class="stat-card">
-        <div class="stat-title">Total Video Kegiatan</div>
-        <div class="stat-val">${db.stats.videoCount}</div>
-        <small style="color: var(--subtext); display: block; margin-top: 6px;">4K / 1080p 60fps Reels & Teaser</small>
-      </div>
-      <div class="stat-card">
-        <div class="stat-title">Fotografer Aktif</div>
-        <div class="stat-val">${db.stats.activePhotographers}</div>
-        <small style="color: var(--subtext); display: block; margin-top: 6px;">Anggota Tim Dokumentasi</small>
-      </div>
-    </div>
+  // Update event counter
+  const ev = db.events.find(e => e.id === targetFile.eventId);
+  if (ev && ev.totalFiles > 0) ev.totalFiles -= 1;
 
-    <h2 style="font-size: 20px; margin-bottom: 16px;">Agenda Kegiatan & Event Dokumentasi</h2>
-    <div class="events-grid">
-      ${db.events.map(ev => `
-        <div class="event-card">
-          <img src="${ev.coverUrl}" class="event-cover" alt="${ev.title}" />
-          <div class="event-body">
-            <span class="status-badge curated" style="margin-bottom: 8px;">${ev.category}</span>
-            <div class="event-title">${ev.title}</div>
-            <div class="event-meta">
-              <span>📅 ${ev.date}</span>
-              <span>📍 ${ev.location}</span>
-            </div>
-            <p style="font-size: 13px; color: var(--subtext); margin-bottom: 12px;">${ev.description}</p>
-            <div style="font-size: 12px; color: #CBD5E1; border-top: 1px solid var(--card-border); padding-top: 8px; display: flex; justify-content: space-between;">
-              <span>PJ: <b>${ev.leadPhotographer}</b></span>
-              <span>📁 ${ev.totalFiles} Item</span>
-            </div>
-          </div>
-        </div>
-      `).join('')}
-    </div>
+  db.files.splice(fileIndex, 1);
+  saveDb(db);
 
-    <div class="api-hint">
-      🚀 Endpoint REST API Siap Terhubung ke Flutter:
-      <br>&bull; GET /api/stats (Ringkasan kuota GDrive)
-      <br>&bull; GET /api/events (Daftar kegiatan ekskul)
-      <br>&bull; GET /api/events/:id/files (Galeri foto & video dengan metadata EXIF)
-      <br>&bull; POST /api/upload (Unggah dokumentasi dengan EXIF & status kurasi)
-      <br>&bull; PATCH /api/files/:id/status (Kurasi foto: RAW -> Curated -> Edited -> Final)
-    </div>
-  </div>
-</body>
-</html>
-  `);
+  res.json({ success: true, message: "File dokumentasi dan data fisik berhasil dihapus." });
 });
 
-// Start Server
-app.listen(PORT, () => {
-  console.log(`[ShutterCloud] Photography Server running at http://localhost:${PORT}`);
+// Fallback to Studio UI on root
+app.get('/', (req, res) => {
+  res.sendFile(path.join(PUBLIC_DIR, 'index.html'));
+});
+
+// Start Server with Graceful Port Error Handling
+const server = app.listen(PORT, () => {
+  console.log(`\n======================================================`);
+  console.log(`📸 [ShutterCloud] Photography Server Live!`);
+  console.log(`🌐 Studio Web UI:  http://localhost:${PORT}`);
+  console.log(`📱 Flutter Web UI: http://localhost:${PORT}/flutter/`);
+  console.log(`🚀 REST API:       http://localhost:${PORT}/api/events`);
+  console.log(`======================================================\n`);
+});
+
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`\n[ERROR] Port ${PORT} sedang digunakan oleh proses lain.`);
+    console.error(`Gunakan: Stop-Process -Id (Get-NetTCPConnection -LocalPort ${PORT}).OwningProcess -Force\n`);
+  } else {
+    console.error(err);
+  }
 });
