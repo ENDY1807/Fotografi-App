@@ -22,3 +22,5 @@ Thumbs.db
 *.lock
 .vscode/
 .idea/
+
+sync_config.jsonc

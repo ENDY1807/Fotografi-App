@@ -28,172 +28,25 @@ if (!fs.existsSync(PUBLIC_DIR)) fs.mkdirSync(PUBLIC_DIR, { recursive: true });
 const initialData = {
   stats: {
     totalStorageLimitBytes: 100 * 1024 * 1024 * 1024, // 100 GB
-    usedStorageBytes: 24.8 * 1024 * 1024 * 1024,
-    photoCount: 1420,
-    videoCount: 86,
-    activePhotographers: 12
+    usedStorageBytes: 0,
+    photoCount: 0,
+    videoCount: 0,
+    activePhotographers: 0
   },
   events: [
     {
       id: "evt-001",
-      title: "Pentas Seni & HUT Sekolah 2026",
-      date: "2026-09-18",
-      location: "Auditorium Utama & Lapangan",
-      description: "Dokumentasi penampilan band, teater, tari kreasi tradisional, dan puncak kembang api.",
-      coverUrl: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=1200&q=80",
-      totalFiles: 450,
-      leadPhotographer: "Arya Pratama",
-      category: "Konser & Panggung"
-    },
-    {
-      id: "evt-002",
-      title: "Class Meeting & Turnamen Futsal",
-      date: "2026-08-25",
-      location: "Gedung Olahraga",
-      description: "Jepretan aksi cepat, selebrasi juara, dan suporter tiap angkatan.",
-      coverUrl: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=1200&q=80",
-      totalFiles: 320,
-      leadPhotographer: "Nadia Salsabila",
-      category: "Olahraga"
-    },
-    {
-      id: "evt-003",
-      title: "Hunting Bareng: Street Photography Kota Tua",
-      date: "2026-07-14",
-      location: "Kawasan Kota Lama",
-      description: "Praktik teknik komposisi leading lines, chiaroscuro, dan candid human interest.",
-      coverUrl: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1200&q=80",
-      totalFiles: 215,
-      leadPhotographer: "Dimas Anggara",
-      category: "Eksplorasi"
-    },
-    {
-      id: "evt-004",
-      title: "Upacara Peringatan 17 Agustus",
-      date: "2026-08-17",
-      location: "Plaza Upacara",
-      description: "Dokumentasi formasi paskibra, pengibaran bendera pusaka, dan paduan suara.",
-      coverUrl: "https://images.unsplash.com/photo-1533227268428-f9ed0900fb3b?auto=format&fit=crop&w=1200&q=80",
-      totalFiles: 180,
-      leadPhotographer: "Rizky Firmansyah",
-      category: "Seremonial"
+      title: "Dokumentasi Utama",
+      date: "2026-10-10",
+      location: "Sekolah & Lapangan",
+      description: "Folder dokumentasi kegiatan ekskul fotografi.",
+      coverUrl: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=1200&q=80",
+      totalFiles: 0,
+      leadPhotographer: "Ekskul Fotografi",
+      category: "Dokumentasi"
     }
   ],
-  files: [
-    {
-      id: "f-101",
-      eventId: "evt-001",
-      filename: "Pensi_Vocalist_Stage.jpg",
-      originalName: "DSC04928.JPG",
-      type: "photo",
-      mimeType: "image/jpeg",
-      sizeBytes: 14200000,
-      url: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=1200&q=80",
-      curationStatus: "final",
-      photographer: "Arya Pratama",
-      uploadDate: "2026-09-19T10:14:00Z",
-      exif: {
-        camera: "Sony Alpha 7 III",
-        lens: "FE 70-200mm f/2.8 GM OSS",
-        focalLength: "135mm",
-        aperture: "f/2.8",
-        shutterSpeed: "1/500s",
-        iso: 3200,
-        resolution: "6000 x 4000 (24 MP)",
-        colorProfile: "sRGB"
-      }
-    },
-    {
-      id: "f-102",
-      eventId: "evt-001",
-      filename: "Lighting_Crowd_Atmosphere.jpg",
-      originalName: "DSC04955.JPG",
-      type: "photo",
-      mimeType: "image/jpeg",
-      sizeBytes: 16800000,
-      url: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=1200&q=80",
-      curationStatus: "curated",
-      photographer: "Nadia Salsabila",
-      uploadDate: "2026-09-19T11:20:00Z",
-      exif: {
-        camera: "Canon EOS R6",
-        lens: "RF 24-70mm f/2.8 L IS USM",
-        focalLength: "28mm",
-        aperture: "f/3.2",
-        shutterSpeed: "1/250s",
-        iso: 6400,
-        resolution: "5472 x 3648 (20 MP)",
-        colorProfile: "sRGB"
-      }
-    },
-    {
-      id: "f-103",
-      eventId: "evt-001",
-      filename: "Teaser_Highlight_Reel_Pensi.mp4",
-      originalName: "CLIP_PENSI_01.MP4",
-      type: "video",
-      mimeType: "video/mp4",
-      sizeBytes: 185000000,
-      url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
-      thumbnailUrl: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=800&q=80",
-      curationStatus: "final",
-      photographer: "Dimas Anggara",
-      uploadDate: "2026-09-20T08:30:00Z",
-      videoMeta: {
-        durationSeconds: 145,
-        fps: 60,
-        resolution: "3840 x 2160 (4K UHD)",
-        codec: "H.264 / AAC",
-        bitrate: "45 Mbps"
-      }
-    },
-    {
-      id: "f-104",
-      eventId: "evt-002",
-      filename: "Futsal_Goal_Celebration.jpg",
-      originalName: "NIK_8920.JPG",
-      type: "photo",
-      mimeType: "image/jpeg",
-      sizeBytes: 12400000,
-      url: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=1200&q=80",
-      curationStatus: "final",
-      photographer: "Rizky Firmansyah",
-      uploadDate: "2026-08-25T16:45:00Z",
-      exif: {
-        camera: "Nikon Z6 II",
-        lens: "NIKKOR Z 70-200mm f/2.8 VR S",
-        focalLength: "85mm",
-        aperture: "f/2.8",
-        shutterSpeed: "1/1000s",
-        iso: 1600,
-        resolution: "6048 x 4024 (24.5 MP)",
-        colorProfile: "sRGB"
-      }
-    },
-    {
-      id: "f-105",
-      eventId: "evt-003",
-      filename: "Street_Shadow_Geometry.jpg",
-      originalName: "FUJI_1102.RAF",
-      type: "photo",
-      mimeType: "image/jpeg",
-      sizeBytes: 28900000,
-      url: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1200&q=80",
-      curationStatus: "edited",
-      photographer: "Dimas Anggara",
-      uploadDate: "2026-07-15T09:12:00Z",
-      exif: {
-        camera: "Fujifilm X-T4",
-        lens: "XF 23mm f/1.4 R LM WR",
-        focalLength: "23mm (35mm equiv)",
-        aperture: "f/5.6",
-        shutterSpeed: "1/800s",
-        iso: 200,
-        resolution: "6240 x 4160 (26 MP)",
-        colorProfile: "Classic Chrome Sim"
-      }
-    }
-  ]
+  files: []
 };
 
 // Database persistence helpers
@@ -211,7 +64,7 @@ function getDb() {
 }
 
 function saveDb(data) {
-  // Recalculate storage stats automatically
+  // Recalculate storage stats automatically based on REAL files
   let totalBytes = 0;
   let photos = 0;
   let videos = 0;
@@ -226,13 +79,12 @@ function saveDb(data) {
 
   data.stats = {
     totalStorageLimitBytes: 100 * 1024 * 1024 * 1024, // 100 GB
-    usedStorageBytes: totalBytes > 0 ? totalBytes : (24.8 * 1024 * 1024 * 1024),
-    photoCount: photos > 0 ? photos : 1420,
-    videoCount: videos > 0 ? videos : 86,
-    activePhotographers: photographers.size > 0 ? photographers.size : 12
+    usedStorageBytes: totalBytes,
+    photoCount: photos,
+    videoCount: videos,
+    activePhotographers: photographers.size
   };
 
-  fs.writeFileSync(METADATA_FILE, JSON.stringify(data, null, 2));
 }
 
 // Multer Storage Configuration (Menyimpan file biner fisik)
